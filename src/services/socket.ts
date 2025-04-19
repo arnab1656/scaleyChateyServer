@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { pubClient, subClient } from "../config/config.redis";
+import { produceMessage } from "./kafka/producer";
 
 interface CustomSocket extends Socket {
   room?: string;
@@ -21,6 +22,7 @@ class SocketService {
         origin: "*",
       },
     });
+
     SocketService._instance = this;
   }
 
@@ -48,12 +50,14 @@ class SocketService {
 
       socket.join(socket.room!);
 
-      socket.on("message", (message: string) => {
+      socket.on("message", async (message: string) => {
         socket.to(socket.room!).emit("incoming-message", {
           type: "incoming-message",
           socketId: socket.id,
           message,
         });
+
+        await produceMessage({ message });
       });
 
       socket.on("disconnect", () => {

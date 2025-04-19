@@ -2,8 +2,9 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import SocketService from "./services/socket";
 import http from "http";
+import { startKafkaConsumer } from "./services/kafka/consumer";
 
-const initServer = () => {
+const initServer = async () => {
   const PORT = 5050;
 
   // Making express app
@@ -17,6 +18,7 @@ const initServer = () => {
 
   socketService.getIo().attach(httpServer);
   socketService.initizingListeners();
+  await startKafkaConsumer();
 
   // Middleware
   app.use(cors());
