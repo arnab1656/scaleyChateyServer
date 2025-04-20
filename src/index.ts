@@ -3,19 +3,21 @@ import cors from "cors";
 import SocketService from "./services/socket";
 import http from "http";
 import { startKafkaConsumer } from "./services/kafka/consumer";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const initServer = async () => {
-  const PORT = 5050;
+  // Get port from environment variable
+  const PORT = parseInt(process.env.PORT || "3000", 10);
 
   // Making express app
   const app: Express = express();
-
-  // Making http server
   const httpServer = http.createServer(app);
 
   // Making socket service
   const socketService = new SocketService();
-
   socketService.getIo().attach(httpServer);
   socketService.initizingListeners();
   await startKafkaConsumer();
@@ -29,8 +31,8 @@ const initServer = async () => {
   });
 
   httpServer.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 };
 
-initServer();
+initServer().catch(console.error);
